@@ -22,7 +22,7 @@ import "./Video.css";
 
 const server_url =
   process.env.NODE_ENV === "production"
-    ? "https://l31.ezsite.online:8000/"
+    ? "https://l31.ezsite.online:4001/"
     : "http://localhost:4001";
 
 var connections = {};
