@@ -92,6 +92,7 @@ class Video extends Component {
           .map((e) => {
             return { value: e.deviceId, label: e.label };
           });
+        console.log(this.options);
       })
       .catch((e) => console.log(e));
   };
