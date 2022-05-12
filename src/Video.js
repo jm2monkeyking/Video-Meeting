@@ -2,7 +2,16 @@ import React, { Component } from "react";
 import io from "socket.io-client";
 import faker from "faker";
 
-import { IconButton, Badge, Input, Button } from "@material-ui/core";
+import {
+  IconButton,
+  Badge,
+  Input,
+  Button,
+  Select,
+  FormControl,
+  MenuItem,
+} from "@material-ui/core";
+import { InputLabel } from "@material-ui/core";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import VideocamOffIcon from "@material-ui/icons/VideocamOff";
 import MicIcon from "@material-ui/icons/Mic";
@@ -75,12 +84,12 @@ class Video extends Component {
       newmessages: 0,
       askForUsername: true,
       username: faker.internet.userName(),
+      videoSource: "",
+      options: [],
     };
     connections = {};
 
     this.getPermissions();
-
-    this.options = [];
     this.getVideoOption();
   }
 
@@ -88,18 +97,26 @@ class Video extends Component {
     await navigator.mediaDevices
       .enumerateDevices()
       .then((devices) => {
-        this.options = devices
-          .filter((e) => e.kind != "videoinput")
+        let options = devices
+          .filter((e) => e.kind == "videoinput")
           .map((e) => {
             return { value: e.deviceId, label: e.label };
           });
-        console.log(this.options);
+        this.setState({ ...this.state, options: options });
+        console.log(options);
+        console.log(this.state);
       })
       .catch((e) => console.log(e));
   };
 
   getPermissions = async () => {
     try {
+      if (window.stream) {
+        window.stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+
       await navigator.mediaDevices
         .getUserMedia({ video: true })
         .then(() => (this.videoAvailable = true))
@@ -119,8 +136,12 @@ class Video extends Component {
       if (this.videoAvailable || this.audioAvailable) {
         navigator.mediaDevices
           .getUserMedia({
-            video: this.videoAvailable,
             audio: this.audioAvailable,
+            video: {
+              deviceId: this.state.videoSource
+                ? { exact: this.state.videoSource }
+                : undefined,
+            },
           })
           .then((stream) => {
             window.localStream = stream;
@@ -137,7 +158,11 @@ class Video extends Component {
   getMedia = () => {
     this.setState(
       {
-        video: this.videoAvailable,
+        video: {
+          deviceId: this.state.videoSource
+            ? { exact: this.state.videoSource }
+            : undefined,
+        },
         audio: this.audioAvailable,
       },
       () => {
@@ -587,6 +612,11 @@ class Video extends Component {
     return matchChrome !== null;
   };
 
+  handleVideoSource = (data) => {
+    this.setState({ ...this.state, videoSource: data.target.value });
+    this.getPermissions();
+  };
+
   render() {
     if (this.isChrome() === false) {
       return (
@@ -611,7 +641,20 @@ class Video extends Component {
       <div>
         {this.state.askForUsername === true ? (
           <div>
-            {/* <Select options={options} /> */}
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">Video Input</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={this.state.videoSource}
+                label="Age"
+                onChange={(e) => this.handleVideoSource(e)}
+              >
+                {this.state.options.map(({ value, label }, index) => (
+                  <MenuItem value={value}>{label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <div
               style={{
                 background: "white",
