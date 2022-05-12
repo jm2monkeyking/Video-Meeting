@@ -81,6 +81,7 @@ class Video extends Component {
     this.getPermissions();
 
     this.options = [];
+    this.getVideoOption();
   }
 
   getVideoOption = async () => {

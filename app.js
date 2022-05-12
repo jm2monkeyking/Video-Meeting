@@ -7,17 +7,21 @@ var xss = require("xss");
 
 const https = require("https");
 var fs = require("fs");
-var options = {
-  key: fs.readFileSync(
-    "/etc/letsencrypt/live/demoshop2.ezsite.online/privkey.pem"
-  ),
-  cert: fs.readFileSync(
-    "/etc/letsencrypt/live/demoshop2.ezsite.online/cert.pem"
-  ),
-  ca: fs.readFileSync(
-    "/etc/letsencrypt/live/demoshop2.ezsite.online/chain.pem"
-  ),
-};
+var options = {};
+
+if (process.env.NODE_ENV === "production") {
+  options = {
+    key: fs.readFileSync(
+      "/etc/letsencrypt/live/demoshop2.ezsite.online/privkey.pem"
+    ),
+    cert: fs.readFileSync(
+      "/etc/letsencrypt/live/demoshop2.ezsite.online/cert.pem"
+    ),
+    ca: fs.readFileSync(
+      "/etc/letsencrypt/live/demoshop2.ezsite.online/chain.pem"
+    ),
+  };
+}
 
 const server = https.createServer(options, app);
 
