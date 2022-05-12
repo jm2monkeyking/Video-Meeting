@@ -36,8 +36,6 @@ const peerConnectionConfig = {
       credential: "test123",
     },
   ],
-  iceTransportPolicy: "all",
-  iceCandidatePoolSize: "10",
 };
 var socket = null;
 var socketId = null;
