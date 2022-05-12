@@ -28,15 +28,16 @@ const server_url =
 var connections = {};
 const peerConnectionConfig = {
   iceServers: [
-    { urls: ["stun:stun.l.google.com:19302"] },
+    // { 'urls': 'stun:stun.services.mozilla.com' },
+    { urls: "stun:stun.l.google.com:19302" },
     {
-      urls: ["turn:l31.ezsite.online:3478"],
+      urls: "turn:l31.ezsite.online:3478",
       username: "test",
       credential: "test123",
     },
   ],
   iceTransportPolicy: "all",
-  iceCandidatePoolSize: "0",
+  iceCandidatePoolSize: "10",
 };
 var socket = null;
 var socketId = null;
