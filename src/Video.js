@@ -42,6 +42,11 @@ const peerConnectionConfig = {
   iceServers: [
     // { 'urls': 'stun:stun.services.mozilla.com' },
     { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: "turn:l31.ezsite.online:3478",
+      username: "test",
+      credential: "test123",
+    },
   ],
 };
 var socket = null;
