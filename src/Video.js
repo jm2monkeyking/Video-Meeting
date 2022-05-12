@@ -93,7 +93,7 @@ class Video extends Component {
             return { value: e.deviceId, label: e.label };
           });
       })
-      .catch(handleError);
+      .catch((es) => console.log(e));
   };
 
   getPermissions = async () => {
