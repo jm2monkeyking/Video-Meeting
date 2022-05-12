@@ -609,6 +609,7 @@ class Video extends Component {
       <div>
         {this.state.askForUsername === true ? (
           <div>
+            <Select options={options} />
             <div
               style={{
                 background: "white",
@@ -641,7 +642,6 @@ class Video extends Component {
                 Connect
               </Button>
             </div>
-
             <div
               style={{
                 justifyContent: "center",
@@ -712,7 +712,6 @@ class Video extends Component {
                 </IconButton>
               ) : null}
 
-              <Select options={options} />
               <Badge
                 badgeContent={this.state.newmessages}
                 max={999}
