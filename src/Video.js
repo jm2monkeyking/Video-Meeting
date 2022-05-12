@@ -79,7 +79,22 @@ class Video extends Component {
     connections = {};
 
     this.getPermissions();
+
+    this.options = [];
   }
+
+  getVideoOption = async () => {
+    await navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        this.options = devices
+          .filter((e) => e.kind != "videoinput")
+          .map((e) => {
+            return { value: e.deviceId, label: e.label };
+          });
+      })
+      .catch(handleError);
+  };
 
   getPermissions = async () => {
     try {
@@ -697,6 +712,7 @@ class Video extends Component {
                 </IconButton>
               ) : null}
 
+              <Select options={options} />
               <Badge
                 badgeContent={this.state.newmessages}
                 max={999}
