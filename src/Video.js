@@ -93,7 +93,7 @@ class Video extends Component {
             return { value: e.deviceId, label: e.label };
           });
       })
-      .catch((es) => console.log(e));
+      .catch((e) => console.log(e));
   };
 
   getPermissions = async () => {
@@ -609,7 +609,7 @@ class Video extends Component {
       <div>
         {this.state.askForUsername === true ? (
           <div>
-            <Select options={options} />
+            {/* <Select options={options} /> */}
             <div
               style={{
                 background: "white",
