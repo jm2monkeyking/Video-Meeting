@@ -270,7 +270,9 @@ class Video extends Component {
         navigator.mediaDevices
           .getDisplayMedia({ video: true, audio: true })
           .then(this.getDislayMediaSuccess)
-          .then((stream) => {})
+          .then((stream) => {
+            console.log(stream);
+          })
           .catch((e) => console.log(e));
       }
     }
@@ -848,7 +850,7 @@ class Video extends Component {
                     borderStyle: "solid",
                     borderColor: "#bdbdbd",
                     margin: "10px",
-                    objectFit: "fill",
+                    // objectFit: "cover",
                     width: "100%",
                     height: "100%",
                   }}

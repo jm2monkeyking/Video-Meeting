@@ -1,0 +1,27 @@
+
+<%- include('header'); -%>
+
+
+    <div class="container" ng-app="myApp" ng-controller="myCtrl">
+      <div style="font-size: 14px; background: white;width: 10%; text-align: center; margin: auto; margin-bottom: 10px">
+        <a style="color: black" href="https://github.com/0x5eba/Video-Meeting"> Source code: 
+        </a>
+      
+      </div>
+      <div>
+        <h1 style="  font-size: 45px" >Video Meeting</h1>
+        <p style=" font-weight: 200px" >Video conference website that lets you stay in touch with all your friends.</p>
+      </div>
+
+      <div style=
+        "background: white;width: 30%; height: auto; padding: 20px; min-width: 400px;
+        text-align: center; margin: auto; margin-top: 100px"
+      >
+        <p style=" margin: 0;font-weight: bold; padding-right: 50px">Start or join a meeting</p>
+        <input placeholder="URL" type="text" ng-model="url">
+        <button variant="contained" color="primary" ng-click="join()"  style="margin: 20px" >Go</butt>
+      </div>
+    </div>
+    <script src="/static/custom/home.js"></script>
+    <%- include('footer'); -%>
+

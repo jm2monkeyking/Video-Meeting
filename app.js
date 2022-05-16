@@ -6,6 +6,7 @@ const path = require("path");
 var xss = require("xss");
 
 const https = require("https");
+// const https = require("http");
 var fs = require("fs");
 var options = {};
 
@@ -29,6 +30,7 @@ var io = require("socket.io")(server);
 
 app.use(cors());
 app.use(bodyParser.json());
+app.set("view engine", "ejs");
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(__dirname + "/build"));
@@ -41,7 +43,21 @@ app.set("port", process.env.PORT || 4001);
 sanitizeString = (str) => {
   return xss(str);
 };
+app.use("/static", express.static("public"));
 
+app.get("/", (req, res) => {
+  let data = {
+    pageTitle: "Home",
+  };
+  res.render("home", data);
+});
+
+app.get("/:room", (req, res) => {
+  let data = {
+    pageTitle: "Video",
+  };
+  res.render("video", data);
+});
 connections = {};
 messages = {};
 timeOnline = {};

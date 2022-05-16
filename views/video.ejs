@@ -1,0 +1,229 @@
+<%- include('header'); -%>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/0.5.12/MinFaker.js" integrity="sha512-+qHsuYJbatsUfmvRdKj5xyKJO1othF3ZeK/X6ap2pNJrHYtSdrNmZFTisz79wr+ddh1XIJs3EpsISWYkJEguwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<div ng-app="myApp" ng-controller="myCtrl">
+  <div class="container">
+    <h1  ng-show="!isChrome()">Sorry, this works only with Google Chrome</h1>
+  </div>
+
+  <div ng-show="isChrome()" class="container">
+    <div ng-show="askForUsername">
+      <div class="form-floating" >
+      <select  class="form-select" id="audioSource" ng-model="permission.audioInputDevice" >
+        <option  ng-repeat="x in deviceOption.audioInput" value="x.deviceId">{{x.label}}</option>
+      </select>
+        <label for="audioSource">Audio input source:</label>
+      </div>
+
+      <div  class="form-floating" >
+        <select  class="form-select" id="audioOutput"  ng-model="permission.audioOutputDevice">
+          <option  ng-repeat="x in deviceOption.audioOutput" value="x.deviceId">{{x.label}}</option>
+
+        </select>
+        <label for="audioOutput">Audio output destination:</label>
+      </div>
+      <div  class="form-floating" >
+        <select  class="form-select" id="videoSource" ng-model="permission.videoDevice">
+          <option  ng-repeat="x in deviceOption.video" value="x.deviceId">{{x.label}}</option>
+
+        </select>
+        <label for="videoSource">Video source:</label>
+
+      </div>
+      <div class="input-group">
+        <input type="text" class="form-control" ng-model="username" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+
+        <button class="btn btn-outline-secondary" ng-click="connect()" type="button">Button</button>
+      </div>
+   
+      
+      <div class="text-center">
+        <video style="width: 80%" id="video" playsinline autoplay></video>
+      </div>
+
+      
+    </div>
+
+    <div ng-show="!askForUsername">
+
+
+      
+
+    <div class="modal fade" id="settingModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Setting</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-floating" >
+              <select  class="form-select" ng-model="permission.audioInputDevice" >
+                <option  ng-repeat="x in deviceOption.audioInput" value="{{x.deviceId}}">{{x.label}}</option>
+              </select>
+                <label for="audioSource">Audio input source:</label>
+              </div>
+        
+              <div  class="form-floating" >
+                <select  class="form-select"  ng-model="permission.audioOutputDevice">
+                  <option  ng-repeat="x in deviceOption.audioOutput" value="{{x.deviceId}}">{{x.label}}</option>
+        
+                </select>
+                <label for="audioOutput">Audio output destination:</label>
+              </div>
+              <div  class="form-floating" >
+                <select  class="form-select" ng-model="permission.videoDevice">
+                  <option  ng-repeat="x in deviceOption.video" value="{{x.deviceId}}">{{x.label}}</option>
+        
+                </select>
+                <label for="videoSource">Video source:</label>
+        
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary"  data-bs-dismiss="modal" ng-click="deviceSourceControl()">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                ...
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Chat Room</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+     
+              <div ng-show="messages.length > 0" style="text-align: left" ng-repeat="x in messages">
+                <p style= "word-break: break-all" >
+                  <b>{{x.sender}}</b>: {{x.data}}
+                </p>
+              </div>
+              <p ng-hide="messages.length > 0">No message yet</p>
+            </div>
+            <div class="modal-footer">
+              <input
+              placeholder="Message"
+              ng-model=message
+            />
+            <button class="btn-primary"
+              variant="contained"
+              color="primary"
+              ng-click="sendMessage()"    
+            >
+              Send
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div >
+          <div class="position-absolute top-100 start-50 translate-middle" style="background-color: whitesmoke;color: whitesmoke;text-align: center">
+            <button style= "color: #424242"  class="btn" ng-click="handleVideo()">{{permission.video?'open camera':'close camera'}}</button>
+            <button style=" color: #f44336"  ng-click="handleEndCall()" class="btn">End call</button>
+            <button style=" color: #424242"  ng-click="handleAudio()" class="btn">{{permission.audio?'open mic':'close mic'}}</button>
+            <button style=" color: #424242"  ng-click="handleScreen()" class="btn">{{permission.screen?'open screen':'close screen'}}</button>
+            <button type="button" class="btn   position-relative" ng-click="openChat(); " data-bs-toggle="modal" data-bs-target="#messageModal">
+              <i class="fa fa-comment" aria-hidden="true"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{newmessages}}
+                <span class="visually-hidden">unread messages</span>
+              </span>
+            </button>
+            <button type="button" class="btn btn-labeled btn-primary"  data-bs-toggle="modal" data-bs-target="#settingModal">
+              <span class="btn-label"><i class="fa fa-camera"></i></span>Setting
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+              Launch demo modal
+            </button>
+          </div>
+
+          <video id="my-video" autoPlay muted style=" border-style: solid; border-color: #bdbdbd; margin: 10px; object-fit: fill; width: 50%;"></video>
+          <div class="container">
+            <div style="padding-top: 20px">
+              <input readonly=true ng-model="url"></input>
+              <button class="btn btn-light" ng-click="copyUrl()">Copy invite link</button>
+            </div>
+
+            <div class="row"id="main"class="flex-container"style=" margin: 0;padding: 0 ">
+    
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+
+  </div>
+</div>
+<%- include('footer'); -%>
+
+<script defer src="/static/custom/video.js"></script>
+<script src="/static/custom/selectSource.js"></script>
