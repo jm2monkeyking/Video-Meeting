@@ -78,7 +78,7 @@
     <div ng-show="!askForUsername" class="row">
       <div class="container">
         <div class="row">
-          <div class="col col-md-8 border border-danger">
+          <div class="col col-md-8 border border-danger p-2 m-0">
             <video
               id="my-video"
               autoPlay
@@ -88,12 +88,13 @@
                 border-color: #bdbdbd;
                 margin: 10px;
                 object-fit: fill;
+                width: 100%;
               "
             ></video>
           </div>
           <div class="col col-md-2 border border-danger">
             <div
-              class="row"
+              class="row overflow-auto"
               id="main"
               class="flex-container"
               style="margin: 0; padding: 0"
@@ -108,7 +109,11 @@
             <div
               class="row overflow-auto"
               id="messageContainer"
-              style="height: 90vh; align-content: flex-start"
+              style="
+                max-height: 88vh;
+                min-height: 88vh;
+                align-content: flex-start;
+              "
             >
               <div
                 ng-show="messages.length > 0"
@@ -225,74 +230,6 @@
         </div>
       </div>
 
-      <!-- <div
-        class="modal fade"
-        id="exampleModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">...</div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" class="btn btn-primary">
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> -->
-
-      <!-- <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Chat Room</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-     
-              <div ng-show="messages.length > 0" style="text-align: left" ng-repeat="x in messages">
-                <p style= "word-break: break-all" >
-                  <b>{{x.sender}}</b>: {{x.data}}
-                </p>
-              </div>
-              <p ng-hide="messages.length > 0">No message yet</p>
-            </div>
-            <div class="modal-footer">
-              <input
-              placeholder="Message"
-              ng-model=message
-            />
-            <button class="btn-primary"
-              variant="contained"
-              color="primary"
-              ng-click="sendMessage()"    
-            >
-              Send
-            </button>
-            </div>
-          </div>
-        </div>
-      </div> -->
-
       <div>
         <div
           class="position-absolute bottom-0 start-50 translate-middle"
@@ -338,14 +275,6 @@
           >
             <span class="btn-label"><i class="fa fa-camera"></i></span>Setting
           </button>
-          <!-- <button
-            type="button"
-            class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-          >
-            Launch demo modal
-          </button> -->
         </div>
       </div>
     </div>

@@ -450,9 +450,11 @@ app.controller("myCtrl", function ($scope) {
               let cssMesure = $scope.changeCssVideos(main);
 
               let video = document.createElement("video");
+              let div = document.createElement("div");
 
+              let button = document.createElement("button");
+              button.innerText = "Pin To Main";
               let css = {
-                // minWidth: cssMesure.minWidth,
                 "min-height": "100%",
                 "max-height": "100%",
                 "min-width": "100%",
@@ -468,8 +470,13 @@ app.controller("myCtrl", function ($scope) {
               video.srcObject = event.stream;
               video.autoplay = true;
               video.playsinline = true;
-
-              main.appendChild(video);
+              button.setAttribute(
+                "onclick",
+                "pintoscreen('" + socketListId + "')"
+              );
+              div.appendChild(video);
+              div.appendChild(button);
+              main.appendChild(div);
             }
           };
 
@@ -556,9 +563,9 @@ app.controller("myCtrl", function ($scope) {
   handleMessage = (e) => this.setState({ message: e.target.value });
 
   $scope.addMessage = function (data, sender, socketIdSender) {
-    console.log("new message come");
-    console.log(socketIdSender);
-    console.log(socketId);
+    // console.log("new message come");
+    // console.log(socketIdSender);
+    // console.log(socketId);
     $scope.messages.push({
       sender: sender,
       data: data,
@@ -567,6 +574,9 @@ app.controller("myCtrl", function ($scope) {
       $scope.newmessages = $scope.newmessages + 1;
     }
     $scope.$apply();
+    document
+      .getElementById("messageContainer")
+      .scrollTo(0, document.getElementById("messageContainer").scrollHeight);
   };
 
   $scope.sendMessage = () => {
@@ -615,3 +625,24 @@ app.controller("myCtrl", function ($scope) {
     this.getPermissions();
   };
 });
+function pintoscreen(socketId) {
+  let videoList = document.querySelectorAll("[data-socket=" + socketId + "]")[0]
+    .parentElement;
+
+  let mainScreenDiv = document.getElementById("my-video").parentElement;
+
+  let mainScreen = document.getElementById("my-video");
+
+  videoList.appendChild(mainScreen);
+
+  let target = document.querySelectorAll("[data-socket=" + socketId + "]")[0];
+
+  mainScreenDiv.appendChild(target);
+  // document
+  //   .getElementById("my-video")
+  //   .parentElement.appendChild(s
+  //     document.querySelectorAll("[data-socket=" + socketId + "]")[0]
+  //   );
+
+  //   .parentElement.appendChild(document.getElementById("my-video"));
+}
