@@ -44,9 +44,9 @@ app.controller("myCtrl", function ($scope) {
   $scope.scanDevice();
 
   $scope.permission = {
-    video: true,
-    audio: true,
-    screen: true,
+    video: false,
+    audio: false,
+    screen: false,
     videoDevice:
       $scope.deviceOption.video.length > 0
         ? $scope.deviceOption.video[0].deviceId
@@ -113,19 +113,19 @@ app.controller("myCtrl", function ($scope) {
       }
 
       if ($scope.permission.video || $scope.permission.audio) {
-        console.log("have permission video and audio");
-        console.log({
-          video: {
-            deviceId: $scope.permission.videoDevice
-              ? { exact: $scope.permission.videoDevice }
-              : undefined,
-          },
-          audio: {
-            deviceId: $scope.permission.audioInputDevice
-              ? { exact: $scope.permission.audioInputDevice }
-              : undefined,
-          },
-        });
+        // console.log("have permission video and audio");
+        // console.log({
+        //   video: {
+        //     deviceId: $scope.permission.videoDevice
+        //       ? { exact: $scope.permission.videoDevice }
+        //       : undefined,
+        //   },
+        //   audio: {
+        //     deviceId: $scope.permission.audioInputDevice
+        //       ? { exact: $scope.permission.audioInputDevice }
+        //       : undefined,
+        //   },
+        // });
         navigator.mediaDevices
           .getUserMedia({
             video: {
@@ -164,10 +164,8 @@ app.controller("myCtrl", function ($scope) {
   };
 
   $scope.getUserMedia = function () {
-    if (
-      ($scope.permission.videoDevice && $scope.permission.video) ||
-      ($scope.permission.audio && $scope.permission.audioInputDevice)
-    ) {
+    if ($scope.permission.video || $scope.permission.audio) {
+      // console.log("get media");
       navigator.mediaDevices
         .getUserMedia({
           video: {
@@ -181,10 +179,11 @@ app.controller("myCtrl", function ($scope) {
               : undefined,
           },
         })
-        .then(this.getUserMediaSuccess)
+        .then($scope.getUserMediaSuccess)
         .then((stream) => {})
         .catch((e) => console.log(e));
     } else {
+      // console.log("get stop");
       try {
         let tracks = steamVideo.srcObject.getTracks();
         tracks.forEach((track) => track.stop());
@@ -194,7 +193,6 @@ app.controller("myCtrl", function ($scope) {
 
   $scope.getUserMediaSuccess = function (stream) {
     try {
-      console.log(window.localStream);
       window.localStream.getTracks().forEach((track) => track.stop());
     } catch (e) {
       console.log(e);
@@ -225,44 +223,39 @@ app.controller("myCtrl", function ($scope) {
     stream.getTracks().forEach(
       (track) =>
         (track.onended = () => {
-          this.setState(
-            {
-              video: false,
-              audio: false,
-            },
-            () => {
-              try {
-                let tracks = steamVideo.srcObject.getTracks();
-                tracks.forEach((track) => track.stop());
-              } catch (e) {
-                console.log(e);
-              }
+          $scope.permission.video = false;
+          $scope.permission.video = false;
 
-              let blackSilence = (...args) =>
-                new MediaStream([$scope.black(...args), $scope.silence()]);
-              window.localStream = blackSilence();
-              steamVideo.srcObject = window.localStream;
+          try {
+            let tracks = steamVideo.srcObject.getTracks();
+            tracks.forEach((track) => track.stop());
+          } catch (e) {
+            console.log(e);
+          }
 
-              for (let id in connections) {
-                connections[id].addStream(window.localStream);
+          let blackSilence = (...args) =>
+            new MediaStream([$scope.black(...args), $scope.silence()]);
+          window.localStream = blackSilence();
+          steamVideo.srcObject = window.localStream;
 
-                connections[id].createOffer().then((description) => {
-                  connections[id]
-                    .setLocalDescription(description)
-                    .then(() => {
-                      socket.emit(
-                        "signal",
-                        id,
-                        JSON.stringify({
-                          sdp: connections[id].localDescription,
-                        })
-                      );
+          for (let id in connections) {
+            connections[id].addStream(window.localStream);
+
+            connections[id].createOffer().then((description) => {
+              connections[id]
+                .setLocalDescription(description)
+                .then(() => {
+                  socket.emit(
+                    "signal",
+                    id,
+                    JSON.stringify({
+                      sdp: connections[id].localDescription,
                     })
-                    .catch((e) => console.log(e));
-                });
-              }
-            }
-          );
+                  );
+                })
+                .catch((e) => console.log(e));
+            });
+          }
         })
     );
   };
@@ -391,12 +384,13 @@ app.controller("myCtrl", function ($scope) {
     } else {
       width = String(100 / elms) + "%";
     }
-
+    // console.log(width);
+    // console.log(height);
     let videos = main.querySelectorAll("video");
     for (let a = 0; a < videos.length; ++a) {
-      videos[a].style.minWidth = minWidth;
-      videos[a].style.minHeight = minHeight;
-      videos[a].style.setProperty("width", width);
+      // videos[a].style.minWidth = minWidth;
+      // videos[a].style.minHeight = minHeight;
+      videos[a].style.setProperty("width", "100%");
       videos[a].style.setProperty("height", height);
     }
 
@@ -406,7 +400,7 @@ app.controller("myCtrl", function ($scope) {
   $scope.connectToSocketServer = function () {
     socket = io.connect(server_url, { secure: true });
 
-    socket.on("signal", this.gotMessageFromServer);
+    socket.on("signal", $scope.gotMessageFromServer);
 
     socket.on("connect", () => {
       socket.emit("join-call", window.location.href);
@@ -458,13 +452,13 @@ app.controller("myCtrl", function ($scope) {
               let video = document.createElement("video");
 
               let css = {
-                minWidth: cssMesure.minWidth,
-                minHeight: cssMesure.minHeight,
-                maxHeight: "100%",
-                margin: "10px",
-                borderStyle: "solid",
-                borderColor: "#bdbdbd",
-                objectFit: "fill",
+                // minWidth: cssMesure.minWidth,
+                "min-height": "100%",
+                "max-height": "100%",
+                "min-width": "100%",
+                "border-style": "solid",
+                "border-color": "#bdbdbd",
+                "object-fit": "fill",
               };
               for (let i in css) video.style[i] = css[i];
 
@@ -484,7 +478,7 @@ app.controller("myCtrl", function ($scope) {
             connections[socketListId].addStream(window.localStream);
           } else {
             let blackSilence = (...args) =>
-              new MediaStream([this.black(...args), this.silence()]);
+              new MediaStream([$scope.black(...args), $scope.silence()]);
             window.localStream = blackSilence();
             connections[socketListId].addStream(window.localStream);
           }
@@ -536,7 +530,6 @@ app.controller("myCtrl", function ($scope) {
 
   $scope.handleVideo = function () {
     $scope.permission.video = !$scope.permission.video;
-    console.log($scope.permission.video);
     $scope.getUserMedia();
   };
   $scope.handleAudio = function () {
@@ -573,6 +566,7 @@ app.controller("myCtrl", function ($scope) {
     if (socketIdSender !== socketId) {
       $scope.newmessages = $scope.newmessages + 1;
     }
+    $scope.$apply();
   };
 
   $scope.sendMessage = () => {
@@ -592,19 +586,19 @@ app.controller("myCtrl", function ($scope) {
       textArea.select();
       try {
         document.execCommand("copy");
-        message.success("Link copied to clipboard!");
+        alert("Link copied to clipboard!");
       } catch (err) {
-        message.error("Failed to copy");
+        alert("Failed to copy");
       }
       document.body.removeChild(textArea);
       return;
     }
     navigator.clipboard.writeText(text).then(
       function () {
-        message.success("Link copied to clipboard!");
+        alert("Link copied to clipboard!");
       },
       () => {
-        message.error("Failed to copy");
+        alert("Failed to copy");
       }
     );
   };
