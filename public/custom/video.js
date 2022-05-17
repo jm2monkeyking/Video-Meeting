@@ -3,7 +3,7 @@ const server_url =
   window.location.href.includes("localhost") ||
   window.location.href.includes("127.0.0.1") === "production"
     ? "http://localhost:8000/"
-    : "https://l31.ezsite.online:4001";
+    : "https://l31.ezsite.online:4001/";
 app.controller("myCtrl", function ($scope) {
   const audioInputSelect = document.querySelector("select#audioSource");
   const audioOutputSelect = document.querySelector("select#audioOutput");
@@ -730,13 +730,16 @@ function captureUserMedia(success_callback) {
   });
 }
 var recorder = null;
-function toggleRecording() {
+function toggleRecording($event) {
   if (recorder == null) {
+    $event.innerText = "Stop Recording";
     recorder = RecordRTC(document.getElementById("my-video").srcObject, {
       type: "video",
     });
     recorder.startRecording();
   } else {
+    $event.innerText = "Record";
+
     recorder.stopRecording(postFiles);
   }
 }
