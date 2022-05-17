@@ -2,7 +2,7 @@ var app = angular.module("myApp", []);
 const server_url =
   window.location.href.includes("localhost") ||
   window.location.href.includes("127.0.0.1") === "production"
-    ? "http://localhost:8000"
+    ? "http://localhost:8000/"
     : "https://l31.ezsite.online:4001/";
 app.controller("myCtrl", function ($scope) {
   const audioInputSelect = document.querySelector("select#audioSource");
@@ -667,7 +667,7 @@ function postFiles() {
     xhr("/uploadFile", file, function (responseText) {
       var fileURL = JSON.parse(responseText).fileURL;
 
-      alert(server_url + "/uploads/" + fileURL);
+      alert(server_url + "uploads/" + fileURL);
     });
     recorder = null;
 
