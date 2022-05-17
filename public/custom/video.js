@@ -125,19 +125,25 @@ app.controller("myCtrl", function ($scope) {
         //       : undefined,
         //   },
         // });
+        let constraints = {};
+        if ($scope.permission.video)
+          constraints.video = {
+            deviceId: $scope.permission.videoDevice
+              ? { exact: $scope.permission.videoDevice }
+              : undefined,
+          };
+        else constraints.video = false;
+
+        if ($scope.permission.audio)
+          constraints.audio = {
+            deviceId: $scope.permission.audioInputDevice
+              ? { exact: $scope.permission.audioInputDevice }
+              : undefined,
+          };
+        else constraints.audio = false;
+
         navigator.mediaDevices
-          .getUserMedia({
-            video: {
-              deviceId: $scope.permission.videoDevice
-                ? { exact: $scope.permission.videoDevice }
-                : undefined,
-            },
-            audio: {
-              deviceId: $scope.permission.audioInputDevice
-                ? { exact: $scope.permission.audioInputDevice }
-                : undefined,
-            },
-          })
+          .getUserMedia(constraints)
           .then((stream) => {
             window.localStream = stream;
             steamVideo.srcObject = stream;
@@ -164,20 +170,24 @@ app.controller("myCtrl", function ($scope) {
 
   $scope.getUserMedia = function () {
     if ($scope.permission.video || $scope.permission.audio) {
-      // console.log("get media");
+      let constraints = {};
+      if ($scope.permission.video)
+        constraints.video = {
+          deviceId: $scope.permission.videoDevice
+            ? { exact: $scope.permission.videoDevice }
+            : undefined,
+        };
+      else constraints.video = false;
+
+      if ($scope.permission.audio)
+        constraints.audio = {
+          deviceId: $scope.permission.audioInputDevice
+            ? { exact: $scope.permission.audioInputDevice }
+            : undefined,
+        };
+      else constraints.audio = false;
       navigator.mediaDevices
-        .getUserMedia({
-          video: {
-            deviceId: $scope.permission.videoDevice
-              ? { exact: $scope.permission.videoDevice }
-              : undefined,
-          },
-          audio: {
-            deviceId: $scope.permission.audioInputDevice
-              ? { exact: $scope.permission.audioInputDevice }
-              : undefined,
-          },
-        })
+        .getUserMedia(constraints)
         .then($scope.getUserMediaSuccess)
         .then((stream) => {})
         .catch((e) => console.log(e));
