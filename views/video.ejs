@@ -253,16 +253,16 @@
           "
         >
           <button style="color: #424242" class="btn" ng-click="handleVideo()">
-            {{ permission.video ? "open camera" : "close camera" }}
+            {{ !permission.video ? "on camera" : "off camera" }}
           </button>
           <button style="color: #f44336" ng-click="handleEndCall()" class="btn">
             End call
           </button>
           <button style="color: #424242" ng-click="handleAudio()" class="btn">
-            {{ permission.audio ? "open mic" : "close mic" }}
+            {{ !permission.audio ? "on mic" : "off mic" }}
           </button>
           <button style="color: #424242" ng-click="handleScreen()" class="btn">
-            {{ permission.screen ? "open screen" : "close screen" }}
+            {{ !permission.screen ? "open screen" : "close screen" }}
           </button>
           <!-- <button
             type="button"

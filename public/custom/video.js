@@ -4,13 +4,16 @@ const server_url =
   window.location.href.includes("127.0.0.1") === "production"
     ? "http://localhost:8000/"
     : "https://l31.ezsite.online:4001/";
+var recordingID = "";
+var recordingStatus = "";
+
 app.controller("myCtrl", function ($scope) {
   const audioInputSelect = document.querySelector("select#audioSource");
   const audioOutputSelect = document.querySelector("select#audioOutput");
   const videoSelect = document.querySelector("select#videoSource");
   const steamVideo = document.getElementById("my-video");
   $scope.url = window.location.href;
-  $scope.askForUsername = true;
+  $scope.askForUsername = false;
   $scope.username = "";
   $scope.newmessages = 0;
   $scope.messages = [];
@@ -243,7 +246,7 @@ app.controller("myCtrl", function ($scope) {
           }
 
           let blackSilence = (...args) =>
-            new MediaStream([this.black(...args), this.silence()]);
+            new MediaStream([$scope.black(...args), $scope.silence()]);
           window.localStream = blackSilence();
           steamVideo.srcObject = window.localStream;
 
@@ -270,15 +273,19 @@ app.controller("myCtrl", function ($scope) {
   };
 
   $scope.getDislayMedia = function () {
-    // if ($scope.permission.screen) {
-    if (navigator.mediaDevices.getDisplayMedia) {
-      navigator.mediaDevices
-        .getDisplayMedia({ video: true, audio: true })
-        .then($scope.getDislayMediaSuccess)
-        .then((stream) => {})
-        .catch((e) => console.log(e));
+    if ($scope.permission.screen) {
+      if (navigator.mediaDevices.getDisplayMedia) {
+        navigator.mediaDevices
+          .getDisplayMedia({ video: $scope.permission.screen, audio: true })
+          .then($scope.getDislayMediaSuccess)
+          .then((stream) => {})
+          .catch((e) => {
+            console.log(e);
+            $scope.permission.screen = !$scope.permission.screen;
+            $scope.$apply();
+          });
+      }
     }
-    // }
   };
 
   $scope.getDislayMediaSuccess = function (stream) {
@@ -323,7 +330,7 @@ app.controller("myCtrl", function ($scope) {
           }
 
           let blackSilence = (...args) =>
-            new MediaStream([this.black(...args), this.silence()]);
+            new MediaStream([$scope.black(...args), $scope.silence()]);
           window.localStream = blackSilence();
           steamVideo.srcObject = window.localStream;
 
@@ -570,13 +577,10 @@ app.controller("myCtrl", function ($scope) {
   $scope.openChat = function () {
     $scope.newmessages = 0;
   };
-  closeChat = () => this.setState({ showModal: false });
-  handleMessage = (e) => this.setState({ message: e.target.value });
+  // closeChat = () => this.setState({ showModal: false });
+  // handleMessage = (e) => this.setState({ message: e.target.value });
 
   $scope.addMessage = function (data, sender, socketIdSender) {
-    // console.log("new message come");
-    // console.log(socketIdSender);
-    // console.log(socketId);
     $scope.messages.push({
       sender: sender,
       data: data,
@@ -675,13 +679,25 @@ function postFiles() {
     // videoElement.poster = "/ajax-loader.gif";
 
     xhr("/uploadFile", file, function (responseText) {
-      var fileURL = JSON.parse(responseText).fileURL;
-
-      alert(server_url + "uploads/" + fileURL);
+      if (recordingStatus == 3) {
+        var fileURL = JSON.parse(responseText).fileURL;
+        alert(server_url + "uploads/" + fileURL);
+      }
     });
     recorder = null;
-
-    // if (mediaStream) mediaStream.stop();
+    if (recordingStatus == 1) {
+      recordingStatus = 2;
+      recorder = RecordRTC(document.getElementById("my-video").srcObject, {
+        type: "video",
+      });
+      recorder.startRecording();
+    }
+    if (recordingStatus == 2) {
+      recorder = RecordRTC(document.getElementById("my-video").srcObject, {
+        type: "video",
+      });
+      recorder.startRecording();
+    }
   });
 }
 
@@ -708,6 +724,7 @@ function xhr(url, data, callback) {
   request.open("POST", url);
 
   var formData = new FormData();
+  formData.append("field", `${recordingID}-${recordingStatus}`);
   formData.append("file", data);
   request.send(formData);
 }
@@ -742,6 +759,8 @@ function captureUserMedia(success_callback) {
 var recorder = null;
 function toggleRecording($event) {
   if (recorder == null) {
+    recordingID = new Date().getTime();
+    recordingStatus = 1;
     $event.innerText = "Stop Recording";
     recorder = RecordRTC(document.getElementById("my-video").srcObject, {
       type: "video",
@@ -749,7 +768,19 @@ function toggleRecording($event) {
     recorder.startRecording();
   } else {
     $event.innerText = "Record";
-
+    recordingStatus = 3;
     recorder.stopRecording(postFiles);
   }
 }
+
+let video = document.getElementById("my-video");
+
+video.addEventListener("play", (event) => {
+  console.log("play event called", recordingStatus);
+  if (recordingStatus == 1) {
+    recorder.stopRecording(postFiles());
+  }
+  if (recordingStatus == 2) {
+    recorder.stopRecording(postFiles());
+  }
+});

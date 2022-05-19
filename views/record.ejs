@@ -164,6 +164,7 @@
         request.open("POST", url);
 
         var formData = new FormData();
+        formData.append("status", 1);
         formData.append("file", data);
         request.send(formData);
       }

@@ -4,11 +4,14 @@ const app = express();
 const bodyParser = require("body-parser");
 const path = require("path");
 var xss = require("xss");
+const { exec } = require("child_process");
 
 const url = require("url");
 var fs = require("fs");
 var options = {};
 var https = null;
+const uploadDir = path.join(__dirname + "/uploads");
+var ffmpeg = require("fluent-ffmpeg");
 
 if (process.env.NODE_ENV === "production") {
   https = require("https");
@@ -25,6 +28,8 @@ if (process.env.NODE_ENV === "production") {
   };
 } else {
   https = require("http");
+  ffmpeg.setFfmpegPath("D:\\ffmpeg\\bin\\ffmpeg.exe");
+  ffmpeg.setFfprobePath("D:\\ffmpeg\\bin\\ffprobe.exe");
 }
 
 const server = https.createServer(options, app);
@@ -33,6 +38,8 @@ var io = require("socket.io")(server);
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.set("view engine", "ejs");
 
 // if (process.env.NODE_ENV === "production") {
@@ -60,6 +67,10 @@ app.get("/record", (req, res) => {
   res.render("record");
 });
 
+app.get("/concatenate", (req, res) => {
+  res.render("concatenate");
+});
+
 app.get("/:room", (req, res) => {
   let data = {
     pageTitle: "Video",
@@ -73,7 +84,6 @@ timeOnline = {};
 app.post("/uploadFile", (request, response) => {
   var uri = url.parse(request.url).pathname,
     filename = path.join(process.cwd(), uri);
-
   var isWin = !!process.platform.match(/^win/);
   if (
     filename &&
@@ -141,11 +151,10 @@ function uploadFile(request, response) {
   var mime = require("mime");
   var formidable = require("formidable");
   var util = require("util");
-
+  let recordingName;
+  let recordingStatus;
   var form = new formidable.IncomingForm();
-
   var dir = !!process.platform.match(/^win/) ? "\\uploads\\" : "/uploads/";
-  // console.log(__dirname + dir);
   form.uploadDir = __dirname + dir;
   form.keepExtensions = true;
   form.maxFieldsSize = 10 * 1024 * 1024;
@@ -153,17 +162,121 @@ function uploadFile(request, response) {
   form.multiples = false;
   form
     .parse(request)
-    .on("field", function (name, field) {
-      //console.log('Got a field:', field);
-      //console.log('Got a field name:', name);
-      // dbDocPath = field;
+    .on("field", function (field, value) {
+      recordingName = value.split("-")[0];
+      recordingStatus = value.split("-")[1];
     })
     .on("file", function (name, files) {
-      fs.rename(
-        files.filepath,
-        path.join(form.uploadDir, files.originalFilename),
-        function (e) {}
-      );
+      let videoPath = path.join(uploadDir, "/" + recordingName);
+
+      switch (recordingStatus) {
+        case "1": //start
+          // console.log("1");
+
+          if (!fs.existsSync(videoPath)) {
+            fs.mkdirSync(videoPath);
+            fs.mkdirSync(path.join(videoPath, "parts"));
+          }
+
+        case "2": //continue
+          // console.log("2");
+
+          fs.renameSync(
+            files.filepath,
+            path.join(path.join(videoPath, "parts"), files.originalFilename)
+          );
+
+          ffmpeg(
+            path.join(path.join(videoPath, "parts"), files.originalFilename)
+          )
+            .format("mp4")
+            .save(
+              path.join(
+                path.join(videoPath, "parts"),
+                new Date().getTime() + ".mp4"
+              )
+            );
+          setTimeout(() => {
+            fs.rmSync(
+              path.join(path.join(videoPath, "parts"), files.originalFilename),
+              {
+                force: true,
+              }
+            );
+          }, 1000);
+
+          // fs.rmSync();
+          break;
+
+        case "3": //end
+          // console.log("3");
+          if (!fs.existsSync(videoPath)) {
+            fs.mkdirSync(videoPath);
+            fs.mkdirSync(path.join(videoPath, "parts"));
+          }
+          fs.renameSync(
+            files.filepath,
+            path.join(path.join(videoPath, "parts"), files.originalFilename)
+          );
+
+          ffmpeg(
+            path.join(path.join(videoPath, "parts"), files.originalFilename)
+          )
+            .format("mp4")
+            .save(
+              path.join(
+                path.join(videoPath, "parts"),
+                new Date().getTime() + ".mp4"
+              )
+            );
+          setTimeout(() => {
+            fs.rmSync(
+              path.join(path.join(videoPath, "parts"), files.originalFilename),
+              {
+                force: true,
+              }
+            );
+          }, 1000);
+          setTimeout(() => {
+            let videoList = fs.readdirSync(path.join(videoPath, "parts"));
+            videoList = videoList.filter((e) => !e.includes(".webm"));
+            let videolistText = "";
+            videoList.forEach((file) => {
+              videolistText +=
+                "file '" +
+                path.join(path.join(videoPath, "parts"), file) +
+                "'\n";
+            });
+            fs.writeFileSync(
+              path.join(path.join(videoPath, "parts"), "video.txt"),
+              videolistText
+            );
+            exec(
+              `ffmpeg -safe 0 -f concat -i ${path.join(
+                path.join(videoPath, "parts"),
+                "video.txt"
+              )} -c copy  ${path.join(videoPath, recordingName + ".mp4")}`,
+              (error, stdout, stderr) => {
+                if (error) {
+                  // console.log(`error: ${error.message}`);
+                  return;
+                }
+                if (stderr) {
+                  // console.log(`stderr: ${stderr}`);
+                  return;
+                }
+                // console.log(`stdout: ${stdout}`);
+              }
+            );
+          }, 5000);
+
+          break;
+      }
+      // fs.rename(
+      //   files.filepath,
+      //   path.join(form.uploadDir, files.originalFilename),
+      //   function (e) {}
+      // );
 
       var file = util.inspect(files);
 
@@ -180,16 +293,11 @@ function uploadFile(request, response) {
       console.log("fileURL: ", fileURL);
       response.write(
         JSON.stringify({
-          fileURL: fileURL,
+          fileURL: recordingName + "/" + recordingName + ".mp4",
         })
       );
       response.end();
-
-      // every time a file has been uploaded successfully,
-      // rename it to it's orignal name
     });
-
-  // form.parse(request, function (err, fields, files) {});
 }
 
 function getHeaders(opt, val) {
@@ -311,6 +419,23 @@ io.on("connection", (socket) => {
     }
   });
 });
+// console.log(__dirname + "\\uploads");
+
+// ffmpeg(__dirname + "\\uploads\\18x14aw10ch3o13y2kod.webm")
+//   // .audioCodec("libfaac")
+//   // .videoCodec("libx264")
+//   .format("mp4")
+//   .save(__dirname + "\\uploads\\combine.mp4w");
+// ffmpeg(__dirname + "\\uploads\\18x14aw10ch3o13y2kod.webm")
+//   .input(__dirname + "\\uploads\\18x14aw10ch3o13y2kod.webm")
+//   .input(__dirname + "\\uploads\\gned7ffpk5c2br0u9m.webm")
+//   .on("error", function (err) {
+//     console.log("An error occurred: " + err.message);
+//   })
+//   .on("end", function () {
+//     console.log("Merging finished !");
+//   })
+//   .mergeToFile(__dirname + "\\uploads\\combine.webm", __dirname + "\\uploads");
 
 server.listen(app.get("port"), () => {
   console.log("listening on", app.get("port"));
