@@ -13,7 +13,7 @@ app.controller("myCtrl", function ($scope) {
   const videoSelect = document.querySelector("select#videoSource");
   const steamVideo = document.getElementById("my-video");
   $scope.url = window.location.href;
-  $scope.askForUsername = false;
+  $scope.askForUsername = true;
   $scope.username = "";
   $scope.newmessages = 0;
   $scope.messages = [];
