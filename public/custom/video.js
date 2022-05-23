@@ -667,7 +667,6 @@ function postFiles() {
   // videoElement.volume = 1;
 
   // videoElement.src = videoElement.srcObject = null;
-
   getSeekableBlob(recorder.getBlob(), function (blob) {
     var fileName = generateRandomString() + ".webm";
 
@@ -772,11 +771,9 @@ function toggleRecording($event) {
     recorder.stopRecording(postFiles);
   }
 }
-
 let video = document.getElementById("my-video");
 
 video.addEventListener("play", (event) => {
-  console.log("play event called", recordingStatus);
   if (recordingStatus == 1) {
     recorder.stopRecording(postFiles());
   }
