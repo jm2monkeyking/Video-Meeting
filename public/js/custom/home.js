@@ -11,3 +11,13 @@ app.controller("myCtrl", function ($scope) {
     }
   };
 });
+navigator.serviceWorker
+  .register("/sw.js")
+  .then((reg) => {})
+  .catch((err) => console.log("Boo!", err));
+
+setTimeout(() => {
+  const img = new Image();
+  img.src = "/static/image/dog.png";
+  document.body.appendChild(img);
+}, 5000);

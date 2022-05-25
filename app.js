@@ -5,13 +5,19 @@ const bodyParser = require("body-parser");
 const path = require("path");
 var xss = require("xss");
 const { exec } = require("child_process");
-
+var FileReader = require("filereader");
 const url = require("url");
 var fs = require("fs");
+const { Readable } = require("stream");
+const md5File = require("md5-file");
+const cron = require("node-cron");
+
+var arrayBufferToBuffer = require("arraybuffer-to-buffer");
 var options = {};
 var https = null;
 const uploadDir = path.join(__dirname + "/uploads");
 var ffmpeg = require("fluent-ffmpeg");
+const { ContactSupportOutlined } = require("@material-ui/icons");
 
 if (process.env.NODE_ENV === "production") {
   https = require("https");
@@ -53,27 +59,41 @@ app.set("port", process.env.PORT || 4001);
 sanitizeString = (str) => {
   return xss(str);
 };
+
 app.use("/static", express.static("public"));
 app.use("/uploads", express.static("uploads"));
 
+// Home Page
 app.get("/", (req, res) => {
   let data = {
-    pageTitle: "Home",
+    pageTitle: "EzMeet - Home",
   };
   res.render("home", data);
 });
-
-app.get("/record", (req, res) => {
-  res.render("record");
+// Screen Size too small or Mobile Phone  not detected
+app.get("/not-suuport-devices", (req, res) => {
+  let data = {
+    pageTitle: "Not suuport Device",
+  };
+  res.render("notsupportdevice", data);
 });
 
-app.get("/concatenate", (req, res) => {
-  res.render("concatenate");
+app.get("/sw.js", function (req, res) {
+  res.sendFile(path.join(__dirname, "sw.js"));
 });
+
+// app.get("/record", (req, res) => {
+//   res.render("record");
+// });
+
+// app.get("/concatenate", (req, res) => {
+//   res.render("concatenate");
+// });
 
 app.get("/:room", (req, res) => {
+  // console.log(req.params);
   let data = {
-    pageTitle: "Video",
+    pageTitle: "EzMeet - " + req.params["room"],
   };
   res.render("video", data);
 });
@@ -144,6 +164,109 @@ app.post("/uploadFile", (request, response) => {
       response.end();
     });
   });
+});
+
+app.post("/uploadvideo", (request, response) => {
+  var mime = require("mime");
+  var formidable = require("formidable");
+  var util = require("util");
+  let information;
+  let filename;
+  var form = new formidable.IncomingForm();
+  var dir = !!process.platform.match(/^win/) ? "\\uploads\\" : "/uploads/";
+  form.uploadDir = __dirname + dir;
+  form.keepExtensions = true;
+  form.maxFieldsSize = 10 * 1024 * 1024;
+  form.maxFields = 1000;
+  form.multiples = false;
+  form
+    .parse(request)
+    .on("field", function (field, value) {
+      console.log("information");
+      console.log(value);
+      information = JSON.parse(value);
+      filename = information.filename;
+    })
+    .on("file", function (name, files) {
+      console.log(information.blob_array_checksum);
+      let videoPath = path.join(uploadDir, "/" + filename);
+      if (!fs.existsSync(videoPath)) {
+        fs.mkdirSync(videoPath);
+        fs.mkdirSync(path.join(videoPath, "parts"));
+
+        for (let blob of information.blob_array_checksum) {
+          fs.mkdirSync(path.join(path.join(videoPath, "parts", blob)));
+        }
+      }
+      let array = information.blob_array_checksum.filter((e) => {
+        return e.includes(information.belongs_to_checksum);
+      });
+
+      fs.writeFileSync(
+        path.join(
+          path.join(path.join(videoPath, "parts"), array[0]),
+          files.originalFilename
+        ),
+        fs.readFileSync(files.filepath)
+      );
+      fs.renameSync(
+        files.filepath,
+        path.join(
+          path.join(path.join(videoPath, "parts"), array[0]),
+          files.originalFilename + ".webm"
+        )
+      );
+
+      let videoList = fs.readdirSync(
+        path.join(path.join(videoPath, "parts"), array[0])
+      );
+      videoList = videoList.filter((e) => !e.includes(".webm"));
+
+      if (information.chunks_length == videoList.length) {
+        let bufferList = [];
+        videoList.forEach((file) => {
+          let reader = fs.readFileSync(
+            path.join(path.join(path.join(videoPath, "parts"), array[0]), file)
+          ).buffer;
+          bufferList.push(arrayBufferToBuffer(reader));
+        });
+        const webmReadable = new Readable();
+        webmReadable.push(Buffer.concat(bufferList));
+        webmReadable.push(null);
+        const outputWebmStream = fs.createWriteStream(
+          path.join(path.join(videoPath, "parts"), array[0] + ".webm")
+        );
+        webmReadable.pipe(outputWebmStream);
+        setTimeout(() => {
+          let servermd5 = md5File.sync(
+            path.join(path.join(videoPath, "parts"), array[0] + ".webm")
+          );
+          console.log(servermd5);
+        }, 5000);
+      }
+
+      var file = util.inspect(files);
+
+      // response.writeHead(200, getHeaders("Content-Type", "application/json"));
+      // var fileName = file
+      //   .split("path:")[1]
+      //   .split("',")[0]
+      //   .split(dir)[1]
+      //   .toString()
+      //   .replace(/\\/g, "")
+      //   .replace(/\//g, "");
+      // var fileURL = files.originalFilename;
+
+      // console.log("fileURL: ", fileURL);
+      response.write(
+        JSON.stringify({
+          // fileURL: recordingName + "/" + recordingName + ".mp4",
+          gg: "ddd",
+        })
+      );
+      console.log("-----------------------------------");
+      response.end();
+    });
 });
 
 function uploadFile(request, response) {
@@ -436,6 +559,21 @@ io.on("connection", (socket) => {
 //     console.log("Merging finished !");
 //   })
 //   .mergeToFile(__dirname + "\\uploads\\combine.webm", __dirname + "\\uploads");
+
+cron.schedule(
+  "* * * * * *",
+  () => {
+    try {
+      // console.log("hih");
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kuala_Lumpur",
+  }
+);
 
 server.listen(app.get("port"), () => {
   console.log("listening on", app.get("port"));

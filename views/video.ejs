@@ -17,64 +17,108 @@
 
   <div ng-show="isChrome()" class="">
     <div ng-show="askForUsername" class="container">
-      <div class="form-floating">
-        <select
-          class="form-select"
-          id="audioSource"
-          ng-model="permission.audioInputDevice"
-        >
-          <option ng-repeat="x in deviceOption.audioInput" value="x.deviceId">
-            {{ x.label }}
-          </option>
-        </select>
-        <label for="audioSource">Audio input source:</label>
-      </div>
+      <div class="row" style="height: 100vh">
+        <div class="col-md-8">
+          <div class="d-flex align-items-center h-100">
+            <video
+              muted
+              style="width: 100%; max-height: 95vh"
+              id="video"
+              playsinline
+              autoplay
+            ></video>
+          </div>
+        </div>
+        <div class="col-md-4 p-5">
+          <div class="form-floating">
+            <select
+              class="form-select"
+              ng-model="permission.audioInputDevice"
+              ng-change="start()"
+            >
+              <option
+                ng-repeat="x in deviceOption.audioInput"
+                value="{{ x.deviceId }}"
+              >
+                {{ x.label }}
+              </option>
+            </select>
+            <label for="audioSource">Audio input source:</label>
+          </div>
 
-      <div class="form-floating">
-        <select
-          class="form-select"
-          id="audioOutput"
-          ng-model="permission.audioOutputDevice"
-        >
-          <option ng-repeat="x in deviceOption.audioOutput" value="x.deviceId">
-            {{ x.label }}
-          </option>
-        </select>
-        <label for="audioOutput">Audio output destination:</label>
-      </div>
-      <div class="form-floating">
-        <select
-          class="form-select"
-          id="videoSource"
-          ng-model="permission.videoDevice"
-        >
-          <option ng-repeat="x in deviceOption.video" value="x.deviceId">
-            {{ x.label }}
-          </option>
-        </select>
-        <label for="videoSource">Video source:</label>
-      </div>
-      <div class="input-group">
-        <input
-          type="text"
-          class="form-control"
-          ng-model="username"
-          placeholder="Username"
-          aria-label="Username"
-          aria-describedby="basic-addon1"
-        />
+          <div class="form-floating">
+            <select
+              class="form-select"
+              ng-model="permission.audioOutputDevice"
+              ng-change="start()"
+            >
+              <option
+                ng-repeat="x in deviceOption.audioOutput"
+                value="{{ x.deviceId }}"
+              >
+                {{ x.label }}
+              </option>
+            </select>
+            <label for="audioOutput">Audio output destination:</label>
+          </div>
+          <div class="form-floating">
+            <select
+              class="form-select"
+              ng-model="permission.videoDevice"
+              ng-change="start()"
+            >
+              <option
+                ng-repeat="x in deviceOption.video"
+                value="{{ x.deviceId }}"
+              >
+                {{ x.label }}
+              </option>
+            </select>
+            <label for="videoSource">Video source:</label>
+          </div>
 
-        <button
-          class="btn btn-outline-secondary"
-          ng-click="connect()"
-          type="button"
-        >
-          Enter Room
-        </button>
-      </div>
-
-      <div class="text-center">
-        <video muted style="width: 80%" id="video" playsinline autoplay></video>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              ng-change="start()"
+              ng-model="permission.audio"
+              id="flexCheckDefault"
+            />
+            <label class="form-check-label" for="flexCheckDefault"
+              >Audio
+            </label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              ng-change="start()"
+              ng-model="permission.video"
+              id="flexCheckChecked"
+            />
+            <label class="form-check-label" for="flexCheckChecked">
+              Video
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              ng-model="username"
+              placeholder="Username"
+              aria-label="Username"
+              aria-describedby="basic-addon1"
+            />
+            <button
+              class="btn btn-outline-secondary"
+              ng-click="connect()"
+              type="button"
+            >
+              Enter Room
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -85,18 +129,13 @@
             class="col col-md-8 border border-danger p-2 m-0"
             id="mainScreen"
           >
-            <div>
+            <div class="d-flex justify-content-center align-items-center h-100">
               <video
+                class=""
                 id="my-video"
                 autoPlay
                 muted
-                style="
-                  border-style: solid;
-                  border-color: #bdbdbd;
-                  margin: 10px;
-                  object-fit: fill;
-                  width: 100%;
-                "
+                style="max-height: 95vh; width: 100%; height: 100%"
               ></video>
             </div>
           </div>
@@ -293,6 +332,11 @@
   </div>
 </div>
 <%- include('footer'); -%>
-
-<script defer src="/static/custom/video.js"></script>
-<script src="/static/custom/selectSource.js"></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"
+  integrity="sha512-8pbzenDolL1l5OPSsoURCx9TEdMFTaeFipASVrMYKhuYtly+k3tcsQYliOEKTmuB1t7yuzAiVo+yd7SJz+ijFQ=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+<script src="/static/js/custom/indexDB.js"></script>
+<script defer src="/static/js/custom/video.js"></script>

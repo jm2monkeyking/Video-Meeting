@@ -8,9 +8,6 @@ var recordingID = "";
 var recordingStatus = "";
 
 app.controller("myCtrl", function ($scope) {
-  const audioInputSelect = document.querySelector("select#audioSource");
-  const audioOutputSelect = document.querySelector("select#audioOutput");
-  const videoSelect = document.querySelector("select#videoSource");
   const steamVideo = document.getElementById("my-video");
   $scope.url = window.location.href;
   $scope.askForUsername = true;
@@ -51,8 +48,8 @@ app.controller("myCtrl", function ($scope) {
   $scope.scanDevice();
 
   $scope.permission = {
-    video: false,
-    audio: false,
+    video: true,
+    audio: true,
     screen: false,
     videoDevice:
       $scope.deviceOption.video.length > 0
@@ -70,6 +67,7 @@ app.controller("myCtrl", function ($scope) {
 
   $scope.deviceSourceControl = function () {
     $scope.getPermissions();
+    $scope.getUserMedia();
   };
 
   var connections = {};
@@ -160,12 +158,6 @@ app.controller("myCtrl", function ($scope) {
   };
 
   $scope.getMedia = function () {
-    $scope.permission.videoDevice = videoSelect.value
-      ? videoSelect.value
-      : undefined;
-    $scope.permission.audioInputDevice = audioInputSelect.value
-      ? audioInputSelect.value
-      : undefined;
     console.log("getMedia", $scope.permission);
     $scope.getUserMedia();
     $scope.connectToSocketServer();
@@ -629,16 +621,56 @@ app.controller("myCtrl", function ($scope) {
   };
 
   $scope.connect = function () {
+    $scope.username = "I-Tea " + $scope.username;
     $scope.askForUsername = false;
-    $scope.permission.audioInputDevice = audioInputSelect.value;
-    $scope.permission.videoDevice = videoSelect.value;
     $scope.getMedia();
   };
 
-  handleVideoSource = (data) => {
-    this.setState({ ...this.state, videoSource: data.target.value });
-    this.getPermissions();
+  const previewVideo = document.querySelector("video");
+
+  $scope.gotStream = function (stream) {
+    window.stream = stream; // make stream available to console
+    previewVideo.srcObject = stream;
+    // Refresh button list in case labels have become available
+    return navigator.mediaDevices.enumerateDevices();
   };
+
+  $scope.handleError = function (error) {
+    console.log(
+      "navigator.MediaDevices.getUserMedia error: ",
+      error.message,
+      error.name
+    );
+  };
+
+  $scope.start = function () {
+    if (window.stream) {
+      window.stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+    console.log($scope.permission);
+    let constraints = {};
+    if ($scope.permission.video)
+      constraints.video = {
+        deviceId: $scope.permission.videoDevice
+          ? { exact: $scope.permission.videoDevice }
+          : undefined,
+      };
+    if ($scope.permission.audio)
+      constraints.audio = {
+        deviceId: $scope.permission.audioInputDevice
+          ? { exact: $scope.permission.audioInputDevice }
+          : undefined,
+      };
+
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then($scope.gotStream)
+      .catch($scope.handleError);
+  };
+
+  $scope.start();
 });
 function pintoscreen(socketId, $event) {
   console.log($event);
@@ -657,77 +689,64 @@ function pintoscreen(socketId, $event) {
 }
 
 var recorder;
-
+var blob_array = [];
 // reusable helpers
 
 // this function submits recorded blob to nodejs server
 function postFiles() {
-  // let videoElement = document.getElementById("my-video");
-  // videoElement.muted = false;
-  // videoElement.volume = 1;
+  try {
+    getSeekableBlob(recorder.getBlob(), function (blob) {
+      var fileName = generateRandomString() + ".webm";
 
-  // videoElement.src = videoElement.srcObject = null;
-  getSeekableBlob(recorder.getBlob(), function (blob) {
-    var fileName = generateRandomString() + ".webm";
+      var file = new File([blob], fileName, {
+        type: "video/webm",
+      });
+      blob_array.push(blob);
+      recorder = null;
 
-    var file = new File([blob], fileName, {
-      type: "video/webm",
-    });
+      switch (recordingStatus) {
+        case 1:
+          recordingStatus = 2;
+        case 2:
+          recorder = RecordRTC(document.getElementById("my-video").srcObject, {
+            type: "video",
+          });
+          recorder.startRecording();
+          break;
+        case 3:
+          addVideoToDB(blob_array, function callback() {
+            recorder = null;
+            blob_array = [];
+            if ("serviceWorker" in navigator && "SyncManager" in window) {
+              navigator.serviceWorker.ready.then(function (swRegistration) {
+                swRegistration.sync
+                  .register("sync_video")
+                  .then(function () {
+                    console.log("后台同步已触发", "sync_video");
+                  })
+                  .catch(function (err) {
+                    console.log("后台同步触发失败", err);
+                  });
+              });
+            }
+          });
 
-    // videoElement.src = "";
-    // videoElement.poster = "/ajax-loader.gif";
-
-    xhr("/uploadFile", file, function (responseText) {
-      if (recordingStatus == 3) {
-        var fileURL = JSON.parse(responseText).fileURL;
-        alert(server_url + "uploads/" + fileURL);
+          break;
       }
+
+      console.log("blob array length ", blob_array.length);
     });
+  } catch (err) {
+    console.log(err);
     recorder = null;
-    if (recordingStatus == 1) {
-      recordingStatus = 2;
-      recorder = RecordRTC(document.getElementById("my-video").srcObject, {
-        type: "video",
-      });
-      recorder.startRecording();
-    }
-    if (recordingStatus == 2) {
-      recorder = RecordRTC(document.getElementById("my-video").srcObject, {
-        type: "video",
-      });
-      recorder.startRecording();
-    }
-  });
+    recorder = RecordRTC(document.getElementById("my-video").srcObject, {
+      type: "video",
+    });
+    recorder.startRecording();
+  }
 }
 
-// XHR2/FormData
-function xhr(url, data, callback) {
-  var request = new XMLHttpRequest();
-  request.onreadystatechange = function () {
-    if (request.readyState == 4 && request.status == 200) {
-      callback(request.responseText);
-    }
-  };
-
-  request.upload.onprogress = function (event) {
-    // progressBar.max = event.total;
-    // progressBar.value = event.loaded;
-    // progressBar.innerHTML =
-    //   "Upload Progress " + Math.round((event.loaded / event.total) * 100) + "%";
-  };
-
-  request.upload.onload = function () {
-    // percentage.style.display = "none";
-    // progressBar.style.display = "none";
-  };
-  request.open("POST", url);
-
-  var formData = new FormData();
-  formData.append("field", `${recordingID}-${recordingStatus}`);
-  formData.append("file", data);
-  request.send(formData);
-}
-
+//
 // generating random string
 function generateRandomString() {
   if (window.crypto) {
@@ -760,11 +779,15 @@ function toggleRecording($event) {
   if (recorder == null) {
     recordingID = new Date().getTime();
     recordingStatus = 1;
-    $event.innerText = "Stop Recording";
-    recorder = RecordRTC(document.getElementById("my-video").srcObject, {
-      type: "video",
-    });
-    recorder.startRecording();
+    try {
+      recorder = RecordRTC(document.getElementById("my-video").srcObject, {
+        type: "video",
+      });
+      recorder.startRecording();
+      $event.innerText = "Stop Recording";
+    } catch (err) {
+      console.log("errr", err);
+    }
   } else {
     $event.innerText = "Record";
     recordingStatus = 3;
@@ -774,10 +797,14 @@ function toggleRecording($event) {
 let video = document.getElementById("my-video");
 
 video.addEventListener("play", (event) => {
-  if (recordingStatus == 1) {
-    recorder.stopRecording(postFiles());
-  }
-  if (recordingStatus == 2) {
-    recorder.stopRecording(postFiles());
+  try {
+    if (recordingStatus == 1) {
+      recorder.stopRecording(postFiles());
+    }
+    if (recordingStatus == 2) {
+      recorder.stopRecording(postFiles());
+    }
+  } catch (e) {
+    console.log(e);
   }
 });
