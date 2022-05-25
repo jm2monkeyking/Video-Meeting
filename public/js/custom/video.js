@@ -470,7 +470,7 @@ app.controller("myCtrl", function ($scope) {
                 "max-width": "100%",
                 "border-style": "solid",
                 "border-color": "#bdbdbd",
-                "object-fit": "fill",
+                // "object-fit": "fill",
               };
               for (let i in css) video.style[i] = css[i];
 
