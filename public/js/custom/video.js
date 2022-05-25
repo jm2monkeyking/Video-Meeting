@@ -465,9 +465,9 @@ app.controller("myCtrl", function ($scope) {
               let button = document.createElement("button");
               button.innerText = "Pin To Main";
               let css = {
-                "min-height": "100%",
-                "max-height": "100%",
-                "min-width": "100%",
+                // "min-height": "100%",
+                // "max-height": "100%",
+                "max-width": "100%",
                 "border-style": "solid",
                 "border-color": "#bdbdbd",
                 "object-fit": "fill",
@@ -674,18 +674,46 @@ app.controller("myCtrl", function ($scope) {
 });
 function pintoscreen(socketId, $event) {
   console.log($event);
-  let videoList = document.querySelectorAll("[data-socket=" + socketId + "]")[0]
-    .parentElement;
+  let videoList = $event.parentElement;
+  let mainScreenDiv = document.getElementById("mainScreen").children[0];
 
-  let mainScreenDiv = document.getElementById("my-video").parentElement;
+  let mainScreenVideo = mainScreenDiv.getElementsByTagName("video")[0];
+  let tartgetVideo = videoList.getElementsByTagName("video")[0];
 
-  let mainScreen = document.getElementById("my-video");
+  mainScreenDiv.removeChild(mainScreenVideo);
+  videoList.removeChild(videoList.children[0]);
+  videoList.removeChild(videoList.children[0]);
 
-  videoList.appendChild(mainScreen);
+  let css = {
+    "max-width": "100%",
+    "border-style": "solid",
+    "border-color": "#bdbdbd",
+    "object-fit": "cover",
+  };
+  for (let i in css) mainScreenVideo.style[i] = css[i];
 
-  let target = document.querySelectorAll("[data-socket=" + socketId + "]")[0];
+  css = {
+    "max-height": "95vh",
+    width: " 100%",
+    height: "100%",
+  };
+  for (let i in css) tartgetVideo.style[i] = css[i];
 
-  mainScreenDiv.appendChild(target);
+  let button = document.createElement("button");
+  button.innerText = "Pin To Main";
+  button.setAttribute("onclick", "pintoscreen('22222',this)");
+  videoList.appendChild(mainScreenVideo);
+  videoList.appendChild(button);
+
+  mainScreenDiv.appendChild(tartgetVideo);
+
+  // let mainScreen = document.getElementById("my-video");
+
+  // videoList.appendChild(mainScreen);
+
+  // let target = document.querySelectorAll("[data-socket=" + socketId + "]")[0];
+
+  // mainScreenDiv.appendChild(target);
 }
 
 var recorder;
