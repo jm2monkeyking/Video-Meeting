@@ -14,15 +14,15 @@ window.addEventListener("DOMContentLoaded", (event) => {
     })(navigator.userAgent || navigator.vendor || window.opera);
     return check;
   };
-  window.onresize = function () {
-    if (window.mobileCheck) {
-      if (window.location.href.includes("not-suuport-devices")) {
-        return false;
-      }
-      window.location = "/not-suuport-devices";
-    }
-  };
-  console.log(url);
+  //   window.onresize = function () {
+  //     if (window.mobileCheck) {
+  //       if (window.location.href.includes("not-suuport-devices")) {
+  //         return false;
+  //       }
+  //       window.location = "/not-suuport-devices";
+  //     }
+  //   };
+  //   console.log(url);
   if (window.mobileCheck) {
     if (window.location.href.includes("not-suuport-devices")) {
       return false;
