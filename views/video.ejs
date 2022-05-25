@@ -1,13 +1,8 @@
 <%- include('header'); -%>
 
 <script src="/socket.io/socket.io.js"></script>
-
-<script
-  src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js"
-  integrity="sha512-IMLquIKoKQeQ+kYuec3BvLYjy3yF2nH/ojHPkXQnQTeGKRliZcVed19I6E0t+WBt+9uPuEba0t2iyZAVP8mdlw=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer"
-></script>
+<script src="/static/js/RecordRTC.min.js"></script>
+<script src="/static/js/EBML.js"></script>
 
 <style>
   #mainScreen div video {
@@ -24,7 +19,6 @@
   }
 </style>
 
-<script src="https://www.webrtc-experiment.com/EBML.js"></script>
 <div ng-app="myApp" ng-controller="myCtrl">
   <div class="container">
     <h1 ng-show="!isChrome()">Sorry, this works only with Google Chrome</h1>
