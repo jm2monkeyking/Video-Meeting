@@ -688,7 +688,7 @@ function pintoscreen(socketId, $event) {
     "max-width": "100%",
     "border-style": "solid",
     "border-color": "#bdbdbd",
-    "object-fit": "cover",
+    // "object-fit": "cover",
   };
   for (let i in css) mainScreenVideo.style[i] = css[i];
 
