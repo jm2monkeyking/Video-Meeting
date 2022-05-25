@@ -64,7 +64,7 @@ self.addEventListener("sync", async function (event) {
               let formData = new FormData();
               formData.append("information", JSON.stringify(infomation));
               formData.append("file", file);
-              fetch("http://localhost:8000/uploadvideo", {
+              fetch("https://l31.ezsite.online:4001/uploadvideo", {
                 body: formData,
                 method: "POST",
               })
