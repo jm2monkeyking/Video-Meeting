@@ -12,7 +12,7 @@ app.controller("myCtrl", function ($scope) {
   $scope.url = window.location.href;
   $scope.askForUsername = true;
   $scope.username = "";
-  $scope.newmessages = 0;
+  // $scope.newmessages = 0;
   $scope.messages = [];
   $scope.message = "";
 
@@ -370,41 +370,6 @@ app.controller("myCtrl", function ($scope) {
     }
   };
 
-  $scope.changeCssVideos = function (main) {
-    let widthMain = main.offsetWidth;
-    let minWidth = "30%";
-    if ((widthMain * 30) / 100 < 300) {
-      minWidth = "300px";
-    }
-    let minHeight = "40%";
-
-    let height = String(100 / elms) + "%";
-    let width = "";
-    if (elms === 0 || elms === 1) {
-      width = "100%";
-      height = "100%";
-    } else if (elms === 2) {
-      width = "45%";
-      height = "100%";
-    } else if (elms === 3 || elms === 4) {
-      width = "35%";
-      height = "50%";
-    } else {
-      width = String(100 / elms) + "%";
-    }
-    // console.log(width);
-    // console.log(height);
-    let videos = main.querySelectorAll("video");
-    for (let a = 0; a < videos.length; ++a) {
-      // videos[a].style.minWidth = minWidth;
-      // videos[a].style.minHeight = minHeight;
-      videos[a].style.setProperty("width", "100%");
-      videos[a].style.setProperty("height", height);
-    }
-
-    return { minWidth, minHeight, width, height };
-  };
-
   $scope.connectToSocketServer = function () {
     socket = io.connect(server_url, { secure: true });
 
@@ -423,9 +388,6 @@ app.controller("myCtrl", function ($scope) {
         if (video !== null) {
           elms--;
           video.parentNode.removeChild(video);
-
-          let main = document.getElementById("main");
-          $scope.changeCssVideos(main);
         }
       });
 
@@ -457,8 +419,6 @@ app.controller("myCtrl", function ($scope) {
             } else {
               elms = clients.length;
               let main = document.getElementById("main");
-              let cssMesure = $scope.changeCssVideos(main);
-
               let video = document.createElement("video");
               let div = document.createElement("div");
 
@@ -473,9 +433,6 @@ app.controller("myCtrl", function ($scope) {
                 // "object-fit": "fill",
               };
               for (let i in css) video.style[i] = css[i];
-
-              video.style.setProperty("width", cssMesure.width);
-              video.style.setProperty("height", cssMesure.height);
               video.setAttribute("data-socket", socketListId);
               video.srcObject = event.stream;
               video.autoplay = true;
@@ -566,21 +523,15 @@ app.controller("myCtrl", function ($scope) {
     window.location.href = "/";
   };
 
-  $scope.openChat = function () {
-    $scope.newmessages = 0;
-  };
-  // closeChat = () => this.setState({ showModal: false });
-  // handleMessage = (e) => this.setState({ message: e.target.value });
-
   $scope.addMessage = function (data, sender, socketIdSender) {
     $scope.messages.push({
       sender: sender,
       data: data,
     });
-    if (socketIdSender !== socketId) {
-      $scope.newmessages = $scope.newmessages + 1;
-    }
-    $scope.$apply();
+    // if (socketIdSender !== socketId) {
+    //   $scope.newmessages = $scope.newmessages + 1;
+    // }
+    // $scope.$apply();
     document
       .getElementById("messageContainer")
       .scrollTo(0, document.getElementById("messageContainer").scrollHeight);

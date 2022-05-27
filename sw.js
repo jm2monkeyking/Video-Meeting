@@ -8,9 +8,9 @@ self.importScripts(
 self.addEventListener("install", (event) => {
   console.log("V1 installing…");
 
-  event.waitUntil(
-    caches.open("static-v1").then((cache) => cache.add("/static/image/cat.png"))
-  );
+  // event.waitUntil(
+  //   caches.open("static-v1").then((cache) => cache.add("/static/image/cat.png"))
+  // );
 });
 
 self.addEventListener("activate", (event) => {
@@ -18,11 +18,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+  // const url = new URL(event.request.url);
   // console.log("this is service worker fetch event", url);
-  if (url.pathname == "/static/image/dog.png") {
-    event.respondWith(caches.match("/static/image/cat.png"));
-  }
+  // if (url.pathname == "/static/image/dog.png") {
+  //   event.respondWith(caches.match("/static/image/cat.png"));
+  // }
 });
 
 self.addEventListener("sync", async function (event) {

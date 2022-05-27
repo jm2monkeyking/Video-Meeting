@@ -300,16 +300,19 @@
           "
         >
           <button style="color: #424242" class="btn" ng-click="handleVideo()">
-            {{ !permission.video ? "on camera" : "off camera" }}
+            {{ !permission.video ? "on " : "off"
+            }}<i class="fa fa-camera" aria-hidden="true"></i>
           </button>
           <button style="color: #f44336" ng-click="handleEndCall()" class="btn">
-            End call
+            End call <i class="fa fa-phone" aria-hidden="true"></i>
           </button>
           <button style="color: #424242" ng-click="handleAudio()" class="btn">
-            {{ !permission.audio ? "on mic" : "off mic" }}
+            {{ !permission.audio ? "on " : "off " }}
+            <i class="fa fa-volume-up" aria-hidden="true"></i>
           </button>
           <button style="color: #424242" ng-click="handleScreen()" class="btn">
-            {{ !permission.screen ? "open screen" : "close screen" }}
+            {{ !permission.screen ? "open " : "close "
+            }}<i class="fa fa-desktop" aria-hidden="true"></i>
           </button>
           <!-- <button
             type="button"
