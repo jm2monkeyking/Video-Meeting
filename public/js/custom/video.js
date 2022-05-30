@@ -75,11 +75,11 @@ app.controller("myCtrl", function ($scope) {
   const peerConnectionConfig = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      {
-        urls: "turn:l31.ezsite.online:3478",
-        username: "test",
-        credential: "test123",
-      },
+      // {
+      //   urls: "turn:l31.ezsite.online:3478",
+      //   username: "test",
+      //   credential: "test123",
+      // },
       {
         urls: "turn:l32.ezsite.online:3478",
         username: "ezsite",
