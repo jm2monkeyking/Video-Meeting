@@ -80,6 +80,11 @@ app.controller("myCtrl", function ($scope) {
         username: "test",
         credential: "test123",
       },
+      {
+        urls: "turn:l32.ezsite.online:3478",
+        username: "ezsite",
+        credential: "ezsite",
+      },
     ],
     iceTransportPolicy: "all",
     iceCandidatePoolSize: "0",
